@@ -3,8 +3,8 @@ import boto3
 import os
 
 try:
-    aws_access_key_id = 'AKIA43VUCUNXDV5V3XAP'
-    aws_secret_access_key = 'GBfs3pIDuS+ErtYBUM93glmHrzuBz+48QMdHDgC7'
+    aws_access_key_id = 'sample'
+    aws_secret_access_key = 'sample'
 
     comprehend = boto3.client('comprehend', aws_access_key_id=aws_access_key_id,
                               aws_secret_access_key=aws_secret_access_key,
