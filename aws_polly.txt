@@ -1,0 +1,26 @@
+from json import dumps as json_encode
+import boto3
+import os
+
+try:
+    aws_access_key_id = 'AKIA43VUCUNXDV5V3XAP'
+    aws_secret_access_key = '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'
+
+    polly = boto3.client('polly', aws_access_key_id=aws_access_key_id,
+                         aws_secret_access_key=aws_secret_access_key,
+                         region_name='us-east-1')
+
+    text = 'Hi, my name is John Doe, and I live in Seattle, WA, USA.'
+
+    response = polly.start_speech_synthesis_task(Text=text,
+                                                 Engine='neural',
+                                                 VoiceId='Joanna',
+                                                 TextType='text',
+                                                 OutputS3BucketName='<S3_Bucket_Name>',
+                                                 OutputFormat='mp3',
+                                                 OutputS3KeyPrefix='PollyOutput/')
+    response = response['SynthesisTask']
+    print('Successfully converted text to speech using Amazon Polly. \nThe process will take a few seconds.')
+
+except Exception as e:
+    print(f'An error occurred: {str(e)}')

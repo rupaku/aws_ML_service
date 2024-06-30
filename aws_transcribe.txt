@@ -1,0 +1,56 @@
+import datetime
+import time
+import urllib.request
+import json
+import boto3
+import uuid
+import os
+
+try:
+    aws_access_key_id = 'AKIA43VUCUNXDV5V3XAP'
+    aws_secret_access_key = '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'
+
+    transcribe = boto3.client('transcribe',
+                             aws_access_key_id=aws_access_key_id,
+                             aws_secret_access_key=aws_secret_access_key,
+                             region_name='us-east-1')
+
+    def transcribe_function():
+        audio_file_name = '<Audio_File_Name>.mp3'
+        job_uri = 's3://<S3_Bucket_Name>/PollyOutput/{}'.format(audio_file_name)
+        job_name = f'transcription_job_{int(time.time())}_{uuid.uuid4()}'
+        file_format = audio_file_name.split('.')[1]
+
+        # check if name is taken or not
+        transcribe.start_transcription_job(
+            TranscriptionJobName=job_name,
+            Media={'MediaFileUri': job_uri},
+            LanguageCode='en-US')
+
+        result = poll_transcription_job(job_name)
+
+        if result['TranscriptionJob']['TranscriptionJobStatus'] == "COMPLETED":
+            transcript_file_uri = result['TranscriptionJob']['Transcript']['TranscriptFileUri']
+            response = urllib.request.urlopen(transcript_file_uri)
+            transcript_data = json.loads(response.read().decode('utf-8'))
+            transcript = transcript_data['results']['transcripts'][0]['transcript']
+            print("Transcript is: ", transcript)
+
+    def poll_transcription_job(job_name):
+        while True:
+            result = transcribe.get_transcription_job(TranscriptionJobName=job_name)
+            job_status = result['TranscriptionJob']['TranscriptionJobStatus']
+            if job_status in ['COMPLETED', 'FAILED']:
+                print("Transcription job status:", job_status)
+                return result
+            time.sleep(5)
+
+    def main():
+        print("Starting transcription job...")
+        transcribe_function()
+
+    if __name__ == "__main__":
+        main()
+
+except Exception as e:
+    print(f'An error occurred: {str(e)}')
